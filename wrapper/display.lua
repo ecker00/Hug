@@ -3,15 +3,19 @@ graphics = {}
 -- Display table
 display = {}
 
+-- Display properties
+------------------------------------------------
+display.contentWidth = love.graphics.getWidth()
+display.contentHeight = love.graphics.getHeight()
 display.CenterReferencePoint = 'center'
-display.TopLeftReferencePoint = 'topLeft' -- default
+display.TopLeftReferencePoint = 'topLeft'
 display.BottomCenterReferencePoint = 'bottomCenter'
 
 
 -- New group
 ------------------------------------------------
 function display.newGroup()
-	local object = hug.DisplayObject( parent )
+	local object = hug.displayObject( parent )
 	
 	-- Properties
 	object.numChildren = 0
@@ -48,19 +52,19 @@ function display.newImage( a, b, c, d )
 	end
 
 	-- Create image object
-	local object = hug.DisplayObject( parent )
-	local img = love.graphics.newImage( path )
+	local object = hug.displayObject( parent )
+	local image = love.graphics.newImage( path )
 
 	-- Set object data
-	object.img = img
+	object._image = image
 	object.rect = false
-	object.draw = true
-	object.x = x + img:getWidth()*0.5
-	object.y = y + img:getHeight()*0.5
-	object.width = img:getWidth() -- Not affected by scale
-	object.height = img:getHeight() -- Not affected by scale
-	object.contentWidth = img:getWidth() -- Affected by scale
-	object.contentHeight = img:getHeight() -- Affected by scale
+	object.isVisible = true
+	object.x = x + image:getWidth()*0.5
+	object.y = y + image:getHeight()*0.5
+	object.width = image:getWidth() -- Not affected by scale
+	object.height = image:getHeight() -- Not affected by scale
+	object.contentWidth = image:getWidth() -- Affected by scale
+	object.contentHeight = image:getHeight() -- Affected by scale
 
 	return object
 end
@@ -78,9 +82,9 @@ end
 -- New image from atlas (should be without Rect)
 ------------------------------------------------
 function display.newImageRect( parent, sheet, rectID )
-	local object = hug.DisplayObject( parent )
-	object.img = love.graphics.newImage( sheet.path )
-	object.draw = true
+	local object = hug.displayObject( parent )
+	object._image = love.graphics.newImage( sheet.path )
+	object.isVisible = true -- FIX: change to .isVisible
 
 	-- Define rect
 	local data = sheet.rects
@@ -98,10 +102,23 @@ end
 
 -- New image from atlas (should be without Rect)
 ------------------------------------------------
-function display.newSprite( parent, sheet, sequences )
-	local object = hug.DisplayObject( parent )
-	object.img = love.graphics.newImage( sheet.path )
-	object.draw = false
+function display.newSprite( a, b, c )
+	-- Overload handling
+	local parent, sheet, sequences
+	if a and b and c then
+		parent, sheet, sequences = a, b, c
+	elseif a and b then
+		sheet, sequences = a, b
+	else
+		print("Hug: Wrong number of arguments in display.newSprite()")
+	end
+
+	-- Create display object
+	local object = hug.displayObject( parent )
+	-- Create image
+	local image = love.graphics.newImage( sheet.path )
+	object._image = image
+	object.isVisible = false
 
 	-- Private (unofficial)
 	object.sequences = sequences
@@ -117,7 +134,7 @@ function display.newSprite( parent, sheet, sequences )
 	object.isPlaying = false
 	object.numFrames = 1
 	object.loopCount = 0
-	object.sequence = 'sequence name unspecified'
+	object.sequence = nil
 	object.timeScale = 1.0
 
 	-- Store for automatic animation update
@@ -153,14 +170,24 @@ function display.newSprite( parent, sheet, sequences )
 	function object:setSequence( name ) -- "light"
 		for _, seq in pairs( object.sequences ) do
 			if seq.name == name then
+
 				-- Set sequence data
-				object.draw = true
+				object.isVisible = true
 				object.time = seq.time
 				object.start = seq.start
 				object.numFrames = seq.count
 				object.loopCount = seq.loopCount
 				object.sequence = name
 				object:setFrame( seq.start )
+
+				-- Update transformation data
+				local x, y, w, h = object.rect:getViewport()
+				object.x = w*0.5
+				object.y = h*0.5
+				object.width = w -- Not affected by scale
+				object.height = h -- Not affected by scale
+				object.contentWidth = w -- Affected by scale
+				object.contentHeight = h -- Affected by scale
 				break
 			end
 		end
@@ -171,7 +198,7 @@ function display.newSprite( parent, sheet, sequences )
 		if not object.isPlaying then return end -- return when paused
 
 		-- Count down
-		if object.timer > object.time then
+		if object.timer > object.time/object.numFrames then
 			object.timer = 0
 
 			-- Set next frame
@@ -180,7 +207,7 @@ function display.newSprite( parent, sheet, sequences )
 			object:setFrame( frame )
 
 		-- Increment timer
-		else object.timer = object.timer + ((dt*1000) * object.timeScale) end
+		else object.timer = object.timer + (dt*1000 * object.timeScale) end
 	end
 
 	return object

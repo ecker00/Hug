@@ -3,8 +3,8 @@ print("#############################################")
 
 -- Detected_ Löve2D
 if love then
-	require("wrapper.hug")
 	love.graphics.setMode( 960, 640 )
+	require("wrapper.hug")
 
 -- Detected: CoronaSDK
 else
@@ -23,16 +23,36 @@ local world = display.newGroup()
 world:translate( 480, 320 )
 
 
-local loveLogo = display.newImage( "logo_love.png", 0, 0 )
-local hugLogo = display.newImage( world, "logo_hug.png", 0, 0 )
-hugLogo.x = 0
+local loveLogo = display.newImage( "images/logo_love.png", 0, 0 )
+local hugLogo = display.newImage( "images/logo_hug.png", 0, 0 )
+hugLogo.x = display.contentWidth-hugLogo.contentWidth*0.5
+print( display.contentWidth, hugLogo.contentWidth )
 
-print(world.parent, loveLogo.parent, hugLogo.parent.parent, hugLogo.parent)
+-- -- Move logo
+-- timer.performWithDelay( 500, function()
+-- 	hugLogo.x = hugLogo.contentWidth
+-- end)
 
--- Move logo
-timer.performWithDelay( 1000, function()
-	hugLogo.x = hugLogo.contentWidth
-end)
+-- timer.performWithDelay( 2000, function()
+-- 	world.isVisible = false
+-- end)
+
+-- Sprite animation
+local data = require('images.hug_ani')
+local sheet = graphics.newImageSheet( 'images/hug_ani.png', data:getSheet() )
+local logoAni = display.newSprite( world, sheet, data:getSequenceData() )
+--local logoAni = display.newSprite( sheet, data:getSequenceData() )
+logoAni:setSequence( 'hug' )
+--logoAni:setReferencePoint( display.TopLeftReferencePoint )
+--logoAni:translate( -250, -70 )
+--logoAni:scale( 4, 4 )
+--logoAni:translate( display.contentWidth*0.5-logoAni.contentWidth*0.5, display.contentHeight*0.5-logoAni.contentHeight*0.5 )
+logoAni.x = 0
+logoAni.y = 0
+logoAni:translate( display.contentWidth*0.5-logoAni.contentWidth*0.5, display.contentHeight*0.5-logoAni.contentHeight*0.5 )
+logoAni.timeScale = 2
+logoAni:play()
+
 
 
 

@@ -1,22 +1,30 @@
--- # Hug
+--
+--
+-- # Hug v0.1
 -- Wrapper for CoronaSDK to Love2D
 -- Built for Love 0.8.0
-
+--
+--
 -- # Coding stucture
--- When non-official properties are needed names start with underscore obj._property.
--- Most non-official functions should go in the hug[] table.
-
+-- Most unofficial functions should go in the hug[] table.
+-- When unofficial properties are needed names start with underscore obj._property.
+-- A comment with "FIX: Explenation"" is a point in the code which needs correction.
+--
+--
 -- # Limitations
 -- Moving objects between groups will cause duplicates
 -- Changing or setting a groups or image parent after creation will cause duplicate renders.
 -- object:setReferencePoint(), is always centered
- 
- 
- -- Hug table
+--
+--
+
+
+-- Hug table
 hug = {}
-function initHug()
-	hug.graphics = display.newGroup() -- { x=0, y=0, rotation=0, xScale=1, yScale=1, parent=nil } -- Root display table
+local function initHug()
+	hug.graphics = display.newGroup() -- Root display group
 end
+
 
 -- Import wrapper functions
 require("wrapper.display")
@@ -27,6 +35,7 @@ require("wrapper.timer")
 ------------------------------------------------
 -- Love functions
 ------------------------------------------------
+
 -- Love load
 function love.load()
 	-- Setup physics world
@@ -64,11 +73,10 @@ end
 
 -- Display object class
 ------------------------------------------------
-function hug.DisplayObject( parent )
+function hug.displayObject( parent )
 	local object = {}
 
 	-- Private (unofficial)
-	object.draw = false
 	object.ani = false
 
 	-- Set default data
@@ -151,17 +159,17 @@ function hug.DisplayObject( parent )
 
 	-- Set fill color
 	function object:setFillColor( r, g, b, a )
-
+		print('Function not yet implemented. :setFillColor()')
 	end
 
 	-- Move object to the front of the layer
 	function object:toFront()
-
+		print('Function not yet implemented. :toFront()')
 	end
 
 	-- Move object to the back of the layer
 	function object:toBack()
-
+		print('Function not yet implemented. :toBack()')
 	end
 
 	return object
@@ -179,50 +187,54 @@ function hug.drawGroup( group )
 		love.graphics.rotate( math.rad(group.rotation) )
 		love.graphics.scale( group.xScale, group.yScale )
 
-		-- Draw graphic
-		if child.draw then
-			-- Update physics
-			if child.physics then
-				child.x = child.physics.body:getX()
-				child.y = child.physics.body:getY()
-				child.rotation = math.deg( child.physics.body:getAngle() )
-			end
-			-- Position child
-			love.graphics.push()
-			love.graphics.translate( child.x, child.y )
-			love.graphics.rotate( math.rad(child.rotation) )
-			love.graphics.scale( child.xScale, child.yScale )
+		-- Only draw visible objects
+		if child.isVisible then
+			-- Draw child
+			if child.numChildren == nil then
+				-- Update positions from physics
+				if child.physics then
+					child.x = child.physics.body:getX()
+					child.y = child.physics.body:getY()
+					child.rotation = math.deg( child.physics.body:getAngle() )
+				end
+				-- Position child
+				love.graphics.push()
+				love.graphics.translate( child.x, child.y )
+				love.graphics.rotate( math.rad(child.rotation) )
+				love.graphics.scale( child.xScale, child.yScale )
 
+				
+				-- Draw from rect (using sprite atlas)
+				if child.rect then
+					-- Alignment offset
+					local _, _, w, h = child.rect:getViewport()
+					if child.align == 'topLeft' then
+
+					elseif child.align == 'center' then
+						love.graphics.translate( w*-.5, h*-.5 )
+					elseif child.align == 'bottomCenter' then
+						love.graphics.translate( w*-.5, h*-1 )
+					end
+					love.graphics.drawq( child._image, child.rect, 0, 0 )
+
+				-- Draw entire image
+				else
+					-- Alignment offset
+					if child.align == 'topLeft' then
+						-- No offset
+					elseif child.align == 'center' then
+						love.graphics.translate( child._image:getWidth()*-.5, child._image:getHeight()*-.5 )
+					elseif child.align == 'bottomCenter' then
+						love.graphics.translate( child._image:getWidth()*-.5, child._image:getHeight()*-1 )
+					end
+					love.graphics.draw( child._image, 0, 0 )
+				end
+				love.graphics.pop()
 			
-			-- Draw from rect, center pivot
-			if child.rect then
-				local _, _, w, h = child.rect:getViewport()
-				if child.align == 'topLeft' then
-
-				elseif child.align == 'center' then
-					love.graphics.translate( w*-.5, h*-.5 )
-				elseif child.align == 'bottomCenter' then
-					love.graphics.translate( w*-.5, h*-1 )
-				end
-				love.graphics.draw( child.img, child.rect, 0, 0 )
-
-			-- Draw entire image, center pivot
-			else
-				if child.align == 'topLeft' then
-
-				elseif child.align == 'center' then
-					love.graphics.translate( child.img:getWidth()*-.5, child.img:getHeight()*-.5 )
-				elseif child.align == 'bottomCenter' then
-					love.graphics.translate( child.img:getWidth()*-.5, child.img:getHeight()*-1 )
-				end
-				love.graphics.draw( child.img, 0, 0 )
+			-- Draw group content
+			elseif child.numChildren > 0 then
+				hug.drawGroup( child )
 			end
-			love.graphics.pop()
-		end
-
-		-- Draw group content
-		if 0 < #child then
-			hug.drawGroup( child )
 		end
 
 		-- Exit group offset
