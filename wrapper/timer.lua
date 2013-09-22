@@ -16,13 +16,13 @@ end
 -- Resume timer
 ------------------------------------------------
 function timer.resume( id )
-
+	print("Hug: timer.pause is not yet implemented.")
 end
 
 -- Pause timer
 ------------------------------------------------
 function timer.pause( id )
-
+	print("Hug: timer.pause is not yet implemented.")
 end
 
 -- Updates all timers

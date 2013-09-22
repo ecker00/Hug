@@ -64,12 +64,12 @@ SheetInfo.frameIndex =
 -- My own animation data
 SheetInfo.sequenceData = {
     {
-        name="hug",
+        name="hug_animation",
         start=1,
         count=4,
-        time=2000,
+        time=4000,
         loopCount = 0,
-        loopDirection = "bounce"
+        loopDirection = "forward" --"bounce"
     }
 }
 

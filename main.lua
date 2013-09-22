@@ -10,164 +10,101 @@ if love then
 else
 	display.setStatusBar(display.HiddenStatusBar)
 	physics = require( "physics" )
-	physics.start()
 end
 
--- require("wrapper.corona")
--- require("wrapper.physics")
--- require("wrapper.system")
--- require("wrapper.timer")
 
--- Create testing scene
-local world = display.newGroup()
-world:translate( 480, 320 )
+------------------------------------------------
+-- Testing scene
+------------------------------------------------
+
+-- Start physics
+physics.start()
 
 
-local loveLogo = display.newImage( "images/logo_love.png", 0, 0 )
+-- Blue background
+local bg = display.newRect(0, 0, display.contentWidth, display.contentHeight)
+bg:setFillColor( 50, 90, 120 )
+
+
+-- Display image: Logo top left
 local hugLogo = display.newImage( "images/logo_hug.png", 0, 0 )
-hugLogo.x = display.contentWidth-hugLogo.contentWidth*0.5
-print( display.contentWidth, hugLogo.contentWidth )
+hugLogo:setReferencePoint( display.TopLeftReferencePoint )
+hugLogo:scale( 0.5, 0.5 )
+hugLogo.x = 0
+hugLogo.y = 0
 
--- -- Move logo
--- timer.performWithDelay( 500, function()
--- 	hugLogo.x = hugLogo.contentWidth
--- end)
 
--- timer.performWithDelay( 2000, function()
--- 	world.isVisible = false
--- end)
-
--- Sprite animation
+-- Sprite animation: Animated logo
 local data = require('images.hug_ani')
 local sheet = graphics.newImageSheet( 'images/hug_ani.png', data:getSheet() )
-local logoAni = display.newSprite( world, sheet, data:getSequenceData() )
---local logoAni = display.newSprite( sheet, data:getSequenceData() )
-logoAni:setSequence( 'hug' )
---logoAni:setReferencePoint( display.TopLeftReferencePoint )
---logoAni:translate( -250, -70 )
---logoAni:scale( 4, 4 )
---logoAni:translate( display.contentWidth*0.5-logoAni.contentWidth*0.5, display.contentHeight*0.5-logoAni.contentHeight*0.5 )
-logoAni.x = 0
-logoAni.y = 0
-logoAni:translate( display.contentWidth*0.5-logoAni.contentWidth*0.5, display.contentHeight*0.5-logoAni.contentHeight*0.5 )
+local logoAni = display.newSprite( sheet, data:getSequenceData() )
+logoAni:setSequence('hug_animation')
+logoAni:setReferencePoint( display.TopLeftReferencePoint )
+logoAni:translate( logoAni.contentWidth+2, logoAni.contentHeight*0.5+1 )
+logoAni:scale( 0.5, 0.5 )
+logoAni.isVisible = false
 logoAni.timeScale = 2
-logoAni:play()
 
 
+-- Time delay: show and play animation
+timer.performWithDelay( 2000, function()
+	logoAni.isVisible = true
+	logoAni:play()
+end)
 
 
-if false then
-	physicsWorld = love.physics.newWorld( 0, 9.81*64, false )
+-- Setup world group
+local world = display.newGroup()
 
-	screen = {}
-	screen.xl = 0
-	screen.xc = love.graphics.getWidth() * 0.5
-	screen.xr = love.graphics.getWidth()
-	screen.xw = love.graphics.getWidth()
-	screen.yt = 0
-	screen.yc = love.graphics.getHeight() * 0.5
-	screen.yb = love.graphics.getHeight()
-	screen.yh = love.graphics.getHeight()
 
-	local bg = display.newGroup()
-	local world = display.newGroup()
-	world:translate( screen.xc, screen.yc )
+-- Create floor
+local floor = display.newRect( world, display.contentWidth*0.25, display.contentHeight*0.75, display.contentWidth*0.5, display.contentHeight*0.15 )
+physics.addBody( floor, "static" )
+floor:setFillColor( 160, 220, 235 )
+floor.id = 'floor'
 
-	local lightPole2
-	local balls = {}
 
-	function love.load()
-		-- Regular image
-		local splash = display.newImage( bg, "assets/splash/splash.png", 0, 0 )
+-- Add physics ball
+local function ballLoop()
+	-- Create ball from regular image
+	local ball = display.newImage( world, "images/ball.png", 0, 0 )
+	ball.x = display.contentWidth*0.5
+	ball:scale( 0.5, 0.5 )
+	ball.id = 'ball'
 
-		-- Image via sprite atlas
-		local rects1 = require('assets.general.lamp_post')
-		local sheet1 = graphics.newImageSheet( 'assets/general/lamp_post@4.png', rects1:getSheet() )
-		local lightPole1 = display.newImageRect( world, sheet1, rects1:getFrameIndex('lamp_post_1'))
-		lightPole1:setReferencePoint( display.CenterReferencePoint )
-		lightPole1:scale( 4, 4 )
-		lightPole1.x = -250
-		lightPole1.y = 0
+	-- Physics body
+	local polygonSheet = require('images.ball')
+	local polygonData = polygonSheet.physicsData( 0.5 )
+	physics.addBody( ball, "dynamic" , polygonData:get('ball') )
 
-		-- Image via sprite atlas
-		local rects2 = require('assets.ground.ground_6')
-		local sheet2 = graphics.newImageSheet( 'assets/ground/ground_6@4.png', rects2:getSheet() )
-		local floor = display.newImageRect( world, sheet2, rects2:getFrameIndex('grass'))
-		floor:setReferencePoint( display.CenterReferencePoint )
-		floor.x = 0
-		floor.y = 425
-		floor:scale( 4, 4 )
-
-		-- Physics body
-		polygonSheet  = require('assets.ground.ground_6-polygons')
-		polygonData   = polygonSheet.physicsData( 1.00 )
-		physics.addBody( floor, "static" , polygonData:get('ground_6') )
-
-		-- Working animation example
-		local rects3 = require('assets.light.light')
-		local sheet3 = graphics.newImageSheet( 'assets/light/light@4.png', rects3:getSheet() )
-		local lightGlow = display.newSprite( world, sheet3 , rects3:getSequenceData() )
-		lightGlow:setSequence( 'light' )
-		lightGlow:setFrame( math.random(1, lightGlow.numFrames) )
-		lightGlow:setReferencePoint( display.CenterReferencePoint )
-		lightGlow:translate( -250, -70 )
-		lightGlow:scale( 4, 4 )
-		lightGlow.timeScale = 10
-		lightGlow:play()
-
-		-- Creating and removing things on timer
-		timer.performWithDelay( 1000, function()
-			lightPole2 = display.newImageRect( world, sheet1, rects1:getFrameIndex('lamp_post_3'))
-			lightPole2:setReferencePoint( display.CenterReferencePoint )
-			lightPole2:scale( 4, 4 )
-			lightPole2.x = 250
-			lightPole2.y = 0
-		end)
-
-		-- Big glow
-		timer.performWithDelay( 3000, function()
-			lightGlow:scale( 2, 2 )
-		end)
-
-		-- Add ball
-		addBall()
-		return
-	end
-
-	-- Add physics ball
-	function addBall()
-		-- Create ball from regular image
-		local ball = display.newImage( world, "assets/ball2.png", math.random()*100, -400 )
-		ball:setReferencePoint( display.CenterReferencePoint )
-		ball:scale( 0.5, 0.5 )
-
-		-- Physics body
-		polygonSheet  = require('assets.ball-polygons')
-		polygonData   = polygonSheet.physicsData( 0.5 )
-		physics.addBody( ball, "dynamic" , polygonData:get('ball') )
-
-		-- Add new ball
-		table.insert( balls, ball )
-		timer.performWithDelay( 1000, addBall )
-	end
-
-	-- This function should be moved into the wrapper code
-	function love.update( dt )
-		if lightPole2 then
-			lightPole2.x = 250 + (math.sin( system.getTimer()*0.001 )*50)
-		end
-
-		-- Wrapper Updates
-		physicsWorld:update( dt )
-		graphics.update( dt )
-		timer.update( dt )
-	end
-
-	-- This function should be moved into the wrapper code
-	function love.draw()
-		-- Wrapper Automatic Draw
-		drawGroup( display )
-	end
+	-- Add new ball
+	timer.performWithDelay( 1000, ballLoop )
 end
+ballLoop()
+
+
+-- Frame update
+local function update()
+
+	-- Remove balls falling off
+	local r = 0
+	for i = 1, world.numChildren do
+		local child = world[i-r]
+
+		if child.id == 'ball' then
+			if child.y > display.contentHeight*0.9 then
+				child:removeSelf()
+				r=r+1
+			end
+		end
+	end
+
+	-- Move floor
+	floor.y = math.sin( system.getTimer()*0.002 ) * 50 + display.contentHeight*0.75
+end
+
+
+-- Runtime enter frame
+Runtime:addEventListener("enterFrame", update)
 
 

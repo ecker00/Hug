@@ -9,13 +9,19 @@ display.contentWidth = love.graphics.getWidth()
 display.contentHeight = love.graphics.getHeight()
 display.CenterReferencePoint = 'center'
 display.TopLeftReferencePoint = 'topLeft'
+display.TopCenterReferencePoint = 'topCenter'
+display.TopRightReferencePoint = 'topRight'
+display.CenterRightReferencePoint = 'centerRight'
+display.BottomRightReferencePoint = 'bottomRight'
 display.BottomCenterReferencePoint = 'bottomCenter'
+display.BottomLeftReferencePoint = 'bottomLeft'
+display.CenterLeftReferencePoint = 'centerLeft'
 
 
 -- New group
 ------------------------------------------------
 function display.newGroup()
-	local object = hug.displayObject( parent )
+	local object = hug.DisplayObject( parent )
 	
 	-- Properties
 	object.numChildren = 0
@@ -23,16 +29,46 @@ function display.newGroup()
 	-- Adding child
 	function object:insert( other )
 		-- Set new parent
-		other.parent = object
-		object[ #object+1 ] = other
-		object.numChildren = object.numChildren+1
+		other.parent = self
+		self[ #self+1 ] = other
+		self.numChildren = self.numChildren+1
 	end
 
 	-- Removing child
 	function object:remove( index )
-		table.remove( object, index )
-		object.numChildren = object.numChildren-1
+		table.remove( self, index )
+		self.numChildren = self.numChildren-1
 	end
+
+	return object
+end
+
+
+function display.newRect( a, b, c, d, e )
+	-- Overload handling
+	local parent, x, y, w, h
+	if a and b and c and d and e then
+		parent, x, y, w, h = a, b, c, d, e
+	elseif a and b and c and d then
+		x, y, w, h = a, b, c, d
+	else
+		print("Hug: Wrong number of arguments in display.newRect()")
+	end
+
+	-- Create display and image object
+	local object = hug.DisplayObject( parent )
+
+	-- Set object parameters
+	object._rectangle = {w=w, h=h}
+	object._rect = false
+	object.isVisible = true
+	object.x = x
+	object.y = y
+	object.width = w
+	object.height = h
+	object.contentWidth = w
+	object.contentHeight = h
+	object:setReferencePoint( display.TopLeftReferencePoint )
 
 	return object
 end
@@ -51,13 +87,13 @@ function display.newImage( a, b, c, d )
 		print("Hug: Wrong number of arguments in display.newImage()")
 	end
 
-	-- Create image object
-	local object = hug.displayObject( parent )
+	-- Create display and image object
+	local object = hug.DisplayObject( parent )
 	local image = love.graphics.newImage( path )
 
-	-- Set object data
+	-- Set object parameters
 	object._image = image
-	object.rect = false
+	object._rect = false
 	object.isVisible = true
 	object.x = x + image:getWidth()*0.5
 	object.y = y + image:getHeight()*0.5
@@ -82,7 +118,7 @@ end
 -- New image from atlas (should be without Rect)
 ------------------------------------------------
 function display.newImageRect( parent, sheet, rectID )
-	local object = hug.displayObject( parent )
+	local object = hug.DisplayObject( parent )
 	object._image = love.graphics.newImage( sheet.path )
 	object.isVisible = true -- FIX: change to .isVisible
 
@@ -94,7 +130,7 @@ function display.newImageRect( parent, sheet, rectID )
 	local h = data.frames[ rectID ].height
 	local width = data.sheetContentWidth
 	local height = data.sheetContentHeight
-	object.rect = love.graphics.newQuad( x, y, w, h, width, height )
+	object._rect = love.graphics.newQuad( x, y, w, h, width, height )
 
 	return object
 end
@@ -114,47 +150,43 @@ function display.newSprite( a, b, c )
 	end
 
 	-- Create display object
-	local object = hug.displayObject( parent )
+	local object = hug.DisplayObject( parent )
 	-- Create image
-	local image = love.graphics.newImage( sheet.path )
-	object._image = image
+	object._image = love.graphics.newImage( sheet.path )
+
+	-- Hug properties
+	object._sequences = sequences
+	object._loopDirection = "forward"
+	object._rects = sheet.rects
+	object._rect = false
+	object._timer = 0
+	object._time = 0
+
+	-- Set animation properties
 	object.isVisible = false
-
-	-- Private (unofficial)
-	object.sequences = sequences
-	object.rects = sheet.rects
-	object.rect = false
-	object.ani = true
-	object.timer = 0
-
-	-- Set animation data
-	object.time = 0
 	object.start = 1
 	object.frame = 1
 	object.isPlaying = false
 	object.numFrames = 1
-	object.loopCount = 0
-	object.sequence = nil
+	object.loopCount = 0 -- FIX: Loop count is not implemented
 	object.timeScale = 1.0
-
-	-- Store for automatic animation update
-	hug.graphics[ #hug.graphics+1 ] = object
+	object.sequence = nil -- FIX: Supposed to default to sequence 1 when non is set.
 
 	-- Play animation
 	function object:play()
-		object.isPlaying = true
+		self.isPlaying = true
 	end
 
 	-- Pause animation
 	function object:pause()
-		object.isPlaying = false
+		self.isPlaying = false
 	end
 
 	-- Set frame rect
 	function object:setFrame( frameIndex )
-		object.frame = frameIndex
+		self.frame = frameIndex
 
-		local data = object.rects
+		local data = object._rects
 		local x = data.frames[ frameIndex ].x
 		local y = data.frames[ frameIndex ].y
 		local w = data.frames[ frameIndex ].width
@@ -163,31 +195,29 @@ function display.newSprite( a, b, c )
 		local height = data.sheetContentHeight
 
 		-- Define rect
-		object.rect = love.graphics.newQuad( x, y, w, h, width, height )
+		self._rect = love.graphics.newQuad( x, y, w, h, width, height )
 	end
 
 	-- Set sequence data
-	function object:setSequence( name ) -- "light"
-		for _, seq in pairs( object.sequences ) do
-			if seq.name == name then
-
+	function object:setSequence( name )
+		for index, seq in pairs( self._sequences ) do
+			if seq.name == name or index == name then
 				-- Set sequence data
-				object.isVisible = true
-				object.time = seq.time
-				object.start = seq.start
-				object.numFrames = seq.count
-				object.loopCount = seq.loopCount
-				object.sequence = name
-				object:setFrame( seq.start )
+				self.isVisible = true
+				self._time = seq.time
+				self.start = seq.start
+				self.numFrames = seq.count
+				self.loopCount = seq.loopCount
+				self._loopDirection = seq.loopDirection
+				self.sequence = name
+				self:setFrame( seq.start )
 
 				-- Update transformation data
-				local x, y, w, h = object.rect:getViewport()
-				object.x = w*0.5
-				object.y = h*0.5
-				object.width = w -- Not affected by scale
-				object.height = h -- Not affected by scale
-				object.contentWidth = w -- Affected by scale
-				object.contentHeight = h -- Affected by scale
+				local _, _, width, height = self._rect:getViewport()
+				self.width = width
+				self.height = height
+				self.contentWidth = width * self.xScale
+				self.contentHeight = height * self.yScale
 				break
 			end
 		end
@@ -195,21 +225,40 @@ function display.newSprite( a, b, c )
 
 	-- Animation update
 	function object:_updateAnimation( dt )
-		if not object.isPlaying then return end -- return when paused
+		if not self.isPlaying then return end -- return when paused
 
 		-- Count down
-		if object.timer > object.time/object.numFrames then
-			object.timer = 0
+		if self._timer > self._time/self.numFrames then
+			self._timer = 0
+			local frame
 
-			-- Set next frame
-			local frame = object.frame+1
-			if frame > object.numFrames then frame = object.start end
-			object:setFrame( frame )
+			-- Set next frame: Forward
+			if self._loopDirection == "forward" then
+				frame = self.frame+1
+				if frame > self.numFrames then
+					frame = self.start
+				end
+
+			-- Set next frame: Bounce
+			elseif self._loopDirection == "bounce" then
+				print('Hug: display.newSprite() with bounce animation is not yet implemented.')
+
+			-- Set next frame: Backward ( Note: Backward does not exist in CoronaSDK )
+			elseif self._loopDirection == "backward" then
+				frame = self.frame-1
+				if frame <= self.start then
+					frame = self.numFrames
+				end
+			end
+			self:setFrame( frame )
+		end
 
 		-- Increment timer
-		else object.timer = object.timer + (dt*1000 * object.timeScale) end
+		self._timer = self._timer + (dt*1000 * self.timeScale)
 	end
 
+	-- Set default sequence
+	object:setSequence(1)
 	return object
 end
 
