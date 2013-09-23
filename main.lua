@@ -26,11 +26,12 @@ bg:setFillColor( 50, 90, 120 )
 
 
 -- Display image: Logo top left
-local hugLogo = display.newImage( "images/logo_hug.png", 0, 0 )
-hugLogo:setReferencePoint( display.TopLeftReferencePoint )
-hugLogo:scale( 0.5, 0.5 )
-hugLogo.x = 0
-hugLogo.y = 0
+local dot = display.newImage( "images/ball.png", 0, 0 )
+dot:setReferencePoint( display.TopLeftReferencePoint )
+dot:setFillColor( 100, 255, 230 )
+dot:scale( 0.5, 0.5 )
+dot.x = 15
+dot.y = 15
 
 
 -- Sprite animation: Animated logo
@@ -67,6 +68,7 @@ floor.id = 'floor'
 local function ballLoop()
 	-- Create ball from regular image
 	local ball = display.newImage( world, "images/ball.png", 0, 0 )
+	ball:setFillColor( math.random(128, 255), math.random(128, 255), math.random(128, 255) )
 	ball.x = display.contentWidth*0.5
 	ball:scale( 0.5, 0.5 )
 	ball.id = 'ball'
