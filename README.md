@@ -1,5 +1,5 @@
 # Hug
-===
+
 A Love2D wrapper for CoronaSDK.
 Built for Love 0.8.0
 
