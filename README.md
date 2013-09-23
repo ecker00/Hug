@@ -5,9 +5,9 @@ Built for Love 0.8.0
 
 
 ### Coding stucture
-Most unofficial functions should go in the hug[] table.
-When unofficial properties are needed names start with underscore obj._property.
-A comment with "FIX: Explenation"" is a point in the code which needs correction.
+Most unofficial functions should go in the `hug[ ]` table.
+When unofficial properties are needed names start with underscore `obj._property`.
+A comment with "FIX: Description"" is a point in the code which needs correction.
 
 
 ### Main framework differences
