@@ -17,9 +17,7 @@ When unofficial properties are needed names start with underscore `obj._property
 
 
 ### Bugs
-* Inserting an object into another group will cause duplicates (unless you manually remove it first).
-* Changing or setting a new parent after creation will cause duplicate renders.
-* Animation speed acting strange, can't seems to find the cause.
+* Setting a DisplayObjects parent after creation will cause duplicates, unless manually removed from last parent.
 
 
 ### To do
