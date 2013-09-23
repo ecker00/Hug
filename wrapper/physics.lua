@@ -26,6 +26,10 @@ function physics.addBody( object, bodyType, polygons )
 		object:setReferencePoint( display.CenterReferencePoint )
 		body:setX( object.x + object.contentWidth*0.5 )
 		body:setY( object.y + object.contentHeight*0.5 )
+
+		 -- Fix: Using :setReferencePoint() is only a temporary fix, as the object is actually
+		 -- topLeft aligned, but the physics and display object have different origins. Which
+		 -- center aligning the display object fixes (unitl you specify a different alignment).
 	end
 
 	-- Create and store physics object
