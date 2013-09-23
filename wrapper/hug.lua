@@ -73,7 +73,7 @@ function hug.align( atype, object )
 	-- CoronaSDK seems to be very irregular in how it handles alignment,
 	-- making it complicated to accomodate all possible combinations.
 	-- Scale affects alignment differently on different type of objects.
-	-- Results also changes depending on if you've set XY positions or not.
+	-- Results also changes depending on if you've set XY positions after creation.
 
 	local alignment = object.align
 
