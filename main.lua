@@ -1,4 +1,3 @@
---love.graphics.setMode( 960, 640 )
 print("#############################################")
 
 -- Detected_ Löve2D
