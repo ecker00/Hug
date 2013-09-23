@@ -2,9 +2,7 @@
 
 A CoronaSDK to Löve2D wrapper.
 Built with Love 0.8.0 and CoronaSDK 2013.1202
-
-### Video
-https://www.youtube.com/watch?v=D6aWCgM_ia0
+In action: https://www.youtube.com/watch?v=D6aWCgM_ia0
 
 
 ### Main framework differences
