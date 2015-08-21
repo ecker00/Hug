@@ -6,9 +6,10 @@ https://www.youtube.com/watch?v=D6aWCgM_ia0
 
 
 ### 2015 (and future) update
-Corona SDK is adding official support for Mac App & Win32 builds:
+Corona SDK is adding official support for Mac App & Win32 builds, making the Hug Wrapper obsolete:
 https://coronalabs.com/blog/2015/03/02/corona-sdk-is-now-free/
 
+---
 
 ### Main framework differences
 CoronaSDK renders everything automatically, which Löve2D does not. To solve this
