@@ -6,7 +6,7 @@ https://www.youtube.com/watch?v=D6aWCgM_ia0
 
 
 ### 2015 (and future) update
-Corona SDK is adding official support for Mac App & Win32 builds, making the Hug Wrapper obsolete:
+Corona SDK is adding official support for Mac App & Win32 builds, making the Hug wrapper obsolete:
 https://coronalabs.com/blog/2015/03/02/corona-sdk-is-now-free/
 
 ---
